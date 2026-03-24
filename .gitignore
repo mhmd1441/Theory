@@ -1,0 +1,6 @@
+.vs/ 
+x64/ 
+*.user 
+*.obj 
+*.exe 
+TheoryFi.0b16ceb3/ 
