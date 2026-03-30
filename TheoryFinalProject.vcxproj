@@ -123,7 +123,17 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="code\automaton\automaton.cpp" />
+    <ClCompile Include="code\lexer\lexer.cpp" />
+    <ClCompile Include="code\parser\parser.cpp" />
+    <ClCompile Include="code\semantic\semantic.cpp" />
     <ClCompile Include="TheoryFinalProject.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="code\automaton\automaton.h" />
+    <ClInclude Include="code\lexer\lexer.h" />
+    <ClInclude Include="code\parser\parser.h" />
+    <ClInclude Include="code\semantic\semantic.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
