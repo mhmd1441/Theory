@@ -30,6 +30,9 @@
     <ClCompile Include="code\semantic\semantic.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="TheoryGUI_single.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="code\semantic\semantic.h">
@@ -44,5 +47,11 @@
     <ClInclude Include="code\automaton\automaton.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="build_instructions.md" />
+    <None Include="FINAL_VERIFICATION_REPORT.md" />
+    <None Include="PROJECT_CLEANUP_SUMMARY.md" />
+    <None Include=".gitignore" />
   </ItemGroup>
 </Project>

@@ -128,12 +128,19 @@
     <ClCompile Include="code\parser\parser.cpp" />
     <ClCompile Include="code\semantic\semantic.cpp" />
     <ClCompile Include="TheoryFinalProject.cpp" />
+    <ClCompile Include="TheoryGUI_single.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="code\automaton\automaton.h" />
     <ClInclude Include="code\lexer\lexer.h" />
     <ClInclude Include="code\parser\parser.h" />
     <ClInclude Include="code\semantic\semantic.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include=".gitignore" />
+    <None Include="build_instructions.md" />
+    <None Include="FINAL_VERIFICATION_REPORT.md" />
+    <None Include="PROJECT_CLEANUP_SUMMARY.md" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
