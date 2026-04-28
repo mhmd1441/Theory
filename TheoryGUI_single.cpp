@@ -487,15 +487,18 @@ private slots:
                     
                     QString codeGenText = "Generated Code (to pseudo-Python):\n";
                     codeGenText += generateCodeGUI(parseTree, 0);
-                    codeGenOutput->setPlainText(codeGenText);
                 } else {
-                    semanticOutput->setPlainText("Semantic checks failed.\n\nErrors found in variable declarations or usage.");
+                    QString parseErrorText = "Parsing failed.\n\nSyntax errors detected in input program.\n\n";
+                    parseErrorText += "Please check the following:\n";
+                    parseErrorText += "• Missing semicolons after statements\n";
+                    parseErrorText += "• Invalid variable names or types\n";
+                    parseErrorText += "• Unmatched parentheses or braces\n";
+                    parseErrorText += "• Reserved keywords used as identifiers\n";
+                    parseTreeOutput->setPlainText(parseErrorText);
+                    semanticOutput->setPlainText("Semantic analysis skipped due to parsing errors.");
+                    codeGenOutput->setPlainText("Code generation skipped due to parsing errors.");
                 }
-            } else {
-                parseTreeOutput->setPlainText("Parsing failed.\n\nSyntax errors detected in the input program.");
-                semanticOutput->setPlainText("Semantic analysis skipped due to parsing errors.");
-                codeGenOutput->setPlainText("Code generation skipped due to parsing errors.");
-            }
+        }
             
             // Cleanup
             cleanupTokensAndSymbols();
@@ -505,6 +508,11 @@ private slots:
         } catch (const std::exception& e) {
             QMessageBox::critical(this, "Analysis Error", QString("Failed to analyze program: %1").arg(e.what()));
         }
+        cleanupTokensAndSymbols();
+        
+        statusBar->showMessage("Program analysis completed");
+        
+    }
     }
 
     void clearProgramInput() {
@@ -633,63 +641,138 @@ private slots:
         if (!root) return "";
         
         QString result;
+        QString indentStr = QString("    ").repeated(indent);
         
         if (strcmp(root->symbol, "Program") == 0) {
             for (int i = 0; i < root->childCount; i++) {
-                result += generateCodeGUI(root->children[i], indent + 1);
+                result += generateCodeGUI(root->children[i], indent);
             }
             return result;
         }
         
         if (strcmp(root->symbol, "StatementList") == 0) {
             for (int i = 0; i < root->childCount; i++) {
-                result += generateCodeGUI(root->children[i], indent + 1);
+                result += generateCodeGUI(root->children[i], indent);
             }
             return result;
         }
         
-        if (strcmp(root->symbol, "If") == 0) {
-            result += QString("  ").repeated(indent) + "if ";
-            result += root->children[0]->symbol;
-            result += " ";
-            result += root->children[1]->symbol;
-            result += ":\n";
-            result += generateCodeGUI(root->children[2], indent + 1);
+        if (strcmp(root->symbol, "Statement") == 0) {
+            // Handle declarations (int, string)
+            if (root->childCount > 0 &&
+                (strcmp(root->children[0]->symbol, "int") == 0 ||
+                 strcmp(root->children[0]->symbol, "string") == 0)) {
+                const char* type = root->children[0]->symbol;
+                const char* varName = root->children[1]->symbol;
+                result += indentStr + "# Declared: " + type + " " + varName + "\n";
+                
+                // Check for initialization
+                if (root->childCount > 3 && strcmp(root->children[2]->symbol, "=") == 0) {
+                    result += indentStr + varName + " = " + generateCodeGUI(root->children[3], 0) + "\n";
+                }
+                return result;
+            }
             
-            if (root->childCount > 5 && strcmp(root->children[5]->symbol, "else") == 0) {
-                result += QString("  ").repeated(indent) + "else:\n";
-                result += generateCodeGUI(root->children[6], indent + 1);
+            // Handle if statements
+            if (root->childCount > 0 && strcmp(root->children[0]->symbol, "if") == 0) {
+                result += indentStr + "if ";
+                // Get condition from children[2] (after "if" and "(")
+                if (root->childCount > 2) {
+                    result += generateCodeGUI(root->children[2], 0);
+                }
+                result += ":\n";
+                // Get then statement from children[3]
+                if (root->childCount > 3) {
+                    result += generateCodeGUI(root->children[3], indent + 1);
+                }
+                // Check for else
+                for (int i = 4; i < root->childCount; i++) {
+                    if (strcmp(root->children[i]->symbol, "else") == 0) {
+                        result += indentStr + "else:\n";
+                        if (i + 1 < root->childCount) {
+                            result += generateCodeGUI(root->children[i + 1], indent + 1);
+                        }
+                        break;
+                    }
+                }
+                return result;
             }
             
-            return result;
-        }
-        
-        if (strcmp(root->symbol, "While") == 0) {
-            result += QString("  ").repeated(indent) + "while ";
-            result += root->children[0]->symbol;
-            result += ":\n";
-            result += generateCodeGUI(root->children[2], indent + 1);
-            return result;
-        }
-        
-        if (strcmp(root->symbol, "Assignment") == 0) {
-            result += QString("  ").repeated(indent) + root->children[0]->symbol;
-            result += " = ";
-            result += root->children[1]->symbol;
-            result += ";\n";
-            return result;
-        }
-        
-        if (strcmp(root->symbol, "Return") == 0) {
-            result += QString("  ").repeated(indent) + "return ";
-            if (root->childCount > 0) {
-                result += root->children[0]->symbol;
+            // Handle while statements
+            if (root->childCount > 0 && strcmp(root->children[0]->symbol, "while") == 0) {
+                result += indentStr + "while ";
+                // Get condition from children[2] (after "while" and "(")
+                if (root->childCount > 2) {
+                    result += generateCodeGUI(root->children[2], 0);
+                }
+                result += ":\n";
+                // Get body from children[3]
+                if (root->childCount > 3) {
+                    result += generateCodeGUI(root->children[3], indent + 1);
+                }
+                return result;
             }
-            result += ";\n";
-            return result;
+            
+            // Handle return statements
+            if (root->childCount > 0 && strcmp(root->children[0]->symbol, "return") == 0) {
+                result += indentStr + "return";
+                if (root->childCount > 1) {
+                    result += " " + generateCodeGUI(root->children[1], 0);
+                }
+                result += "\n";
+                return result;
+            }
+            
+            // Handle assignments (identifier = expression;)
+            if (root->childCount > 0 && 
+                root->children[0]->childCount == 0 && 
+                isIdentifierStart(root->children[0]->symbol[0])) {
+                if (root->childCount > 1 && strcmp(root->children[1]->symbol, "=") == 0) {
+                    result += indentStr + root->children[0]->symbol + " = ";
+                    if (root->childCount > 2) {
+                        result += generateCodeGUI(root->children[2], 0);
+                    }
+                    result += "\n";
+                    return result;
+                }
+            }
+            
+            // Handle blocks { ... }
+            if (root->childCount > 0 && strcmp(root->children[0]->symbol, "{") == 0) {
+                for (int i = 1; i < root->childCount - 1; i++) {
+                    result += generateCodeGUI(root->children[i], indent);
+                }
+                return result;
+            }
+            
+            return result;  // Empty statement or unknown
         }
         
-        return "Unknown node type";
+        // For leaf nodes (identifiers, numbers, operators)
+        if (root->childCount == 0) {
+            // Skip punctuation tokens in output
+            if (strcmp(root->symbol, ";") == 0 || 
+                strcmp(root->symbol, "{") == 0 || 
+                strcmp(root->symbol, "}") == 0 ||
+                strcmp(root->symbol, "(") == 0 ||
+                strcmp(root->symbol, ")") == 0) {
+                return "";
+            }
+            return QString(root->symbol);
+        }
+        
+        // For expression nodes (with children), combine them
+        for (int i = 0; i < root->childCount; i++) {
+            QString childCode = generateCodeGUI(root->children[i], 0);
+            if (!childCode.isEmpty()) {
+                if (!result.isEmpty() && !childCode.startsWith(" ")) {
+                    result += " ";
+                }
+                result += childCode;
+            }
+        }
+        
+        return result;
     }
 
     bool simulateGUI(automat &A, const char *input, QString &errorMessage) {
