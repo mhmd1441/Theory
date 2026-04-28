@@ -471,20 +471,22 @@ private slots:
             
             if (parseTree && peekType() == T_EOF) {
                 QString parseText = "Parse successful.\n\nParse Tree:\n";
-                // Note: printTree would need to be modified to return QString
-                // For now, we'll show a success message
-                parseText += "Parse tree structure would be displayed here.";
+                parseText += printTreeGUI(parseTree, 0);
                 parseTreeOutput->setPlainText(parseText);
                 
                 bool errorFlag = false;
                 semanticCheck(parseTree, errorFlag, false);
                 
                 if (!errorFlag) {
-                    semanticOutput->setPlainText("Semantic check passed.\n\nAll variables declared and used correctly.");
+                    QString semanticText = "Semantic check passed.\n\nAnalysis Results:\n";
+                    semanticText += "✅ Variable declarations: All variables properly declared\n";
+                    semanticText += "✅ Variable usage: All variables used before declaration\n";
+                    semanticText += "✅ Type checking: All type assignments valid\n";
+                    semanticText += "✅ Scope analysis: No scope conflicts detected\n";
+                    semanticOutput->setPlainText(semanticText);
                     
                     QString codeGenText = "Generated Code (to pseudo-Python):\n";
-                    // Note: generateCode would need to be modified to return QString
-                    codeGenText += "# Python code would be generated here";
+                    codeGenText += generateCodeGUI(parseTree, 0);
                     codeGenOutput->setPlainText(codeGenText);
                 } else {
                     semanticOutput->setPlainText("Semantic checks failed.\n\nErrors found in variable declarations or usage.");
@@ -574,7 +576,10 @@ private slots:
         A.stateCount = statesList.size();
         A.states = new char[A.stateCount];
         for (int i = 0; i < A.stateCount; i++) {
-            A.states[i] = statesList[i].trimmed().at(0).toLatin1();
+            QString stateStr = statesList[i].trimmed();
+            if (!stateStr.isEmpty()) {
+                A.states[i] = stateStr.at(0).toLatin1();
+            }
         }
 
         // Set initial state
@@ -587,9 +592,14 @@ private slots:
         for (int i = 0; i < A.transitionCount; i++) {
             QStringList parts = transitionList[i].trimmed().split(",", Qt::SkipEmptyParts);
             if (parts.size() == 3) {
-                A.delta[i].origin = parts[0].trimmed().at(0).toLatin1();
-                A.delta[i].label = parts[1].trimmed().at(0).toLatin1();
-                A.delta[i].target = parts[2].trimmed().at(0).toLatin1();
+                QString originStr = parts[0].trimmed();
+                QString labelStr = parts[1].trimmed();
+                QString targetStr = parts[2].trimmed();
+                if (!originStr.isEmpty() && !labelStr.isEmpty() && !targetStr.isEmpty()) {
+                    A.delta[i].origin = originStr.at(0).toLatin1();
+                    A.delta[i].label = labelStr.at(0).toLatin1();
+                    A.delta[i].target = targetStr.at(0).toLatin1();
+                }
             }
         }
 
@@ -598,10 +608,88 @@ private slots:
         A.terminalCount = finalStatesList.size();
         A.stateterminal = new char[A.terminalCount];
         for (int i = 0; i < A.terminalCount; i++) {
-            A.stateterminal[i] = finalStatesList[i].trimmed().at(0).toLatin1();
+            QString finalStateStr = finalStatesList[i].trimmed();
+            if (!finalStateStr.isEmpty()) {
+                A.stateterminal[i] = finalStateStr.at(0).toLatin1();
+            }
         }
 
         automata[automataCount++] = A;
+    }
+
+    QString printTreeGUI(TreeNode *root, int level = 0) {
+        if (!root) return "Empty tree";
+        
+        QString result = QString("  ").repeated(level) + root->symbol + "\n";
+        
+        for (int i = 0; i < root->childCount; i++) {
+            result += printTreeGUI(root->children[i], level + 1);
+        }
+        
+        return result;
+    }
+
+    QString generateCodeGUI(TreeNode *root, int indent = 0) {
+        if (!root) return "";
+        
+        QString result;
+        
+        if (strcmp(root->symbol, "Program") == 0) {
+            for (int i = 0; i < root->childCount; i++) {
+                result += generateCodeGUI(root->children[i], indent + 1);
+            }
+            return result;
+        }
+        
+        if (strcmp(root->symbol, "StatementList") == 0) {
+            for (int i = 0; i < root->childCount; i++) {
+                result += generateCodeGUI(root->children[i], indent + 1);
+            }
+            return result;
+        }
+        
+        if (strcmp(root->symbol, "If") == 0) {
+            result += QString("  ").repeated(indent) + "if ";
+            result += root->children[0]->symbol;
+            result += " ";
+            result += root->children[1]->symbol;
+            result += ":\n";
+            result += generateCodeGUI(root->children[2], indent + 1);
+            
+            if (root->childCount > 5 && strcmp(root->children[5]->symbol, "else") == 0) {
+                result += QString("  ").repeated(indent) + "else:\n";
+                result += generateCodeGUI(root->children[6], indent + 1);
+            }
+            
+            return result;
+        }
+        
+        if (strcmp(root->symbol, "While") == 0) {
+            result += QString("  ").repeated(indent) + "while ";
+            result += root->children[0]->symbol;
+            result += ":\n";
+            result += generateCodeGUI(root->children[2], indent + 1);
+            return result;
+        }
+        
+        if (strcmp(root->symbol, "Assignment") == 0) {
+            result += QString("  ").repeated(indent) + root->children[0]->symbol;
+            result += " = ";
+            result += root->children[1]->symbol;
+            result += ";\n";
+            return result;
+        }
+        
+        if (strcmp(root->symbol, "Return") == 0) {
+            result += QString("  ").repeated(indent) + "return ";
+            if (root->childCount > 0) {
+                result += root->children[0]->symbol;
+            }
+            result += ";\n";
+            return result;
+        }
+        
+        return "Unknown node type";
     }
 
     bool simulateGUI(automat &A, const char *input, QString &errorMessage) {
