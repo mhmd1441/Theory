@@ -6,6 +6,52 @@
 // ===========================
 
 Token *currentToken = NULL;
+string parserLastError = "";
+static string parserTrace = "";
+
+static void trace(const string &msg)
+{
+        parserTrace += msg + "\n";
+}
+
+static void setParserError(const string &msg)
+{
+        if (!parserLastError.empty())
+                return;
+        if (currentToken)
+        {
+                parserLastError = "Syntax error at (" + to_string(currentToken->line) + "," + to_string(currentToken->col) +
+                                 "): " + msg + " (got '" + string(currentToken->lexeme) + "')";
+                if (msg.find("';'") != string::npos)
+                        parserLastError += "\nHint: add a semicolon ';' at the end of the statement.";
+                else if (msg.find("')'") != string::npos)
+                        parserLastError += "\nHint: check parenthesis balance near this expression.";
+                else if (msg.find("'='") != string::npos)
+                        parserLastError += "\nHint: assignment format is: identifier = expression ;";
+                else if (msg.find("identifier") != string::npos)
+                        parserLastError += "\nHint: identifier names should start with a letter or underscore.";
+        }
+        else
+        {
+                parserLastError = "Syntax error: " + msg;
+        }
+}
+
+bool hasParserError()
+{
+        return !parserLastError.empty();
+}
+
+void clearParserError()
+{
+        parserLastError.clear();
+        parserTrace.clear();
+}
+
+const string &getParserTrace()
+{
+        return parserTrace;
+}
 
 // ===========================
 // PARSE TREE NODE MANAGEMENT
@@ -39,7 +85,10 @@ void addChild(TreeNode *parent, TreeNode *child)
 void advanceToken()
 {
         if (currentToken && currentToken->type != T_EOF)
+        {
+                trace(string("consume token: ") + currentToken->lexeme);
                 currentToken = currentToken->next;
+        }
 }
 
 TokenType peekType()
@@ -56,6 +105,8 @@ TokenType peekType()
 
 TreeNode *parseProgram()
 {
+        clearParserError();
+        trace("rule: Program -> StatementList");
         TreeNode *node = newNode("Program");
         TreeNode *stmtList = parseStatementList();
         addChild(node, stmtList);
@@ -69,6 +120,7 @@ TreeNode *parseStatementList()
             peekType() == T_IF || peekType() == T_WHILE || peekType() == T_RETURN ||
             peekType() == T_IDENTIFIER || peekType() == T_LBRACE)
         {
+                trace("rule: StatementList -> Statement StatementList");
                 TreeNode *st = parseStatement();
                 if (st == NULL)
                         return node;
@@ -93,6 +145,7 @@ TreeNode *parseStatement()
         // Handle declarations (int, string)
         if (t == T_INT || t == T_STRING)
         {
+                trace("rule: Statement -> (int|string) id (= Expression)? ;");
                 // Add the type keyword
                 if (t == T_INT)
                         addChild(node, newNode("int"));
@@ -103,7 +156,7 @@ TreeNode *parseStatement()
                 // Get the identifier
                 if (peekType() != T_IDENTIFIER)
                 {
-                        cout << "Syntax error: expected identifier after type declaration\n";
+                        setParserError("expected identifier after type");
                         return NULL;
                 }
                 Token *identTok = currentToken;
@@ -125,7 +178,7 @@ TreeNode *parseStatement()
                 // Require semicolon
                 if (peekType() != T_SEMICOLON)
                 {
-                        cout << "Syntax error: expected ';' after declaration\n";
+                        setParserError("expected ';' after declaration");
                         return NULL;
                 }
                 addChild(node, newNode(";"));
@@ -136,12 +189,13 @@ TreeNode *parseStatement()
 
         if (t == T_IF)
         {
+                trace("rule: Statement -> if ( Expression ) Statement (else Statement)?");
                 addChild(node, newNode("if"));
                 advanceToken(); // consume 'if'
 
                 if (peekType() != T_LPAREN)
                 {
-                        cout << "Syntax error: expected '('\n";
+                        setParserError("expected '(' after if");
                         return NULL;
                 }
                 addChild(node, newNode("("));
@@ -152,7 +206,7 @@ TreeNode *parseStatement()
 
                 if (peekType() != T_RPAREN)
                 {
-                        cout << "Syntax error: expected ')'\n";
+                        setParserError("expected ')' after condition");
                         return NULL;
                 }
                 addChild(node, newNode(")"));
@@ -171,11 +225,12 @@ TreeNode *parseStatement()
         }
         else if (t == T_WHILE)
         {
+                trace("rule: Statement -> while ( Expression ) Statement");
                 addChild(node, newNode("while"));
                 advanceToken();
                 if (peekType() != T_LPAREN)
                 {
-                        cout << "Syntax error: expected '('\n";
+                        setParserError("expected '(' after while");
                         return NULL;
                 }
                 addChild(node, newNode("("));
@@ -186,7 +241,7 @@ TreeNode *parseStatement()
 
                 if (peekType() != T_RPAREN)
                 {
-                        cout << "Syntax error: expected ')'\n";
+                        setParserError("expected ')' after condition");
                         return NULL;
                 }
                 addChild(node, newNode(")"));
@@ -197,13 +252,14 @@ TreeNode *parseStatement()
         }
         else if (t == T_RETURN)
         {
+                trace("rule: Statement -> return Expression ;");
                 addChild(node, newNode("return"));
                 advanceToken();
                 TreeNode *expr = parseExpression();
                 addChild(node, expr);
                 if (peekType() != T_SEMICOLON)
                 {
-                        cout << "Syntax error: expected ';'\n";
+                        setParserError("expected ';' after return");
                         return NULL;
                 }
                 addChild(node, newNode(";"));
@@ -211,13 +267,14 @@ TreeNode *parseStatement()
         }
         else if (t == T_LBRACE)
         {
+                trace("rule: Statement -> { StatementList }");
                 addChild(node, newNode("{"));
                 advanceToken();
                 TreeNode *stl = parseStatementList();
                 addChild(node, stl);
                 if (peekType() != T_RBRACE)
                 {
-                        cout << "Syntax error: expected '}'\n";
+                        setParserError("expected '}' to close block");
                         return NULL;
                 }
                 addChild(node, newNode("}"));
@@ -225,12 +282,13 @@ TreeNode *parseStatement()
         }
         else if (t == T_IDENTIFIER)
         {
+                trace("rule: Statement -> id = Expression ;");
                 Token *identTok = currentToken;
                 addChild(node, newNode(identTok->lexeme));
                 advanceToken();
                 if (peekType() != T_ASSIGN)
                 {
-                        cout << "Syntax error: expected '='\n";
+                        setParserError("expected '=' in assignment");
                         return NULL;
                 }
                 addChild(node, newNode("="));
@@ -239,7 +297,7 @@ TreeNode *parseStatement()
                 addChild(node, expr);
                 if (peekType() != T_SEMICOLON)
                 {
-                        cout << "Syntax error: expected ';'\n";
+                        setParserError("expected ';' after assignment");
                         return NULL;
                 }
                 addChild(node, newNode(";"));
@@ -247,7 +305,7 @@ TreeNode *parseStatement()
         }
         else
         {
-                cout << "Syntax error: unexpected token in Statement\n";
+                setParserError("unexpected token in statement");
                 return NULL;
         }
 
@@ -256,26 +314,121 @@ TreeNode *parseStatement()
 
 TreeNode *parseExpression()
 {
-        TreeNode *node = newNode("Expression");
-        TokenType t = peekType();
-        if (t == T_IDENTIFIER)
-        {
-                TreeNode *idNode = newNode(currentToken->lexeme);
-                addChild(node, idNode);
-                advanceToken();
-        }
-        else if (t == T_INTEGER)
-        {
-                TreeNode *intNode = newNode(currentToken->lexeme);
-                addChild(node, intNode);
-                advanceToken();
-        }
-        else
-        {
-                cout << "Syntax error: expected identifier or integer in Expression\n";
+        trace("rule: Expression -> Equality");
+        return parseEquality();
+}
+
+TreeNode *parseEquality()
+{
+        TreeNode *left = parseComparison();
+        if (!left)
                 return NULL;
+
+        while (peekType() == T_EQ || peekType() == T_NEQ)
+        {
+                TreeNode *expr = newNode("Expression");
+                addChild(expr, left);
+                addChild(expr, newNode(currentToken->lexeme));
+                advanceToken();
+                TreeNode *right = parseComparison();
+                if (!right)
+                        return NULL;
+                addChild(expr, right);
+                left = expr;
         }
-        return node;
+        return left;
+}
+
+TreeNode *parseComparison()
+{
+        TreeNode *left = parseTerm();
+        if (!left)
+                return NULL;
+
+        while (peekType() == T_LT || peekType() == T_GT || peekType() == T_LE || peekType() == T_GE)
+        {
+                TreeNode *expr = newNode("Expression");
+                addChild(expr, left);
+                addChild(expr, newNode(currentToken->lexeme));
+                advanceToken();
+                TreeNode *right = parseTerm();
+                if (!right)
+                        return NULL;
+                addChild(expr, right);
+                left = expr;
+        }
+        return left;
+}
+
+TreeNode *parseTerm()
+{
+        TreeNode *left = parseFactor();
+        if (!left)
+                return NULL;
+
+        while (peekType() == T_PLUS || peekType() == T_MINUS)
+        {
+                TreeNode *expr = newNode("Expression");
+                addChild(expr, left);
+                addChild(expr, newNode(currentToken->lexeme));
+                advanceToken();
+                TreeNode *right = parseFactor();
+                if (!right)
+                        return NULL;
+                addChild(expr, right);
+                left = expr;
+        }
+        return left;
+}
+
+TreeNode *parseFactor()
+{
+        TreeNode *left = parsePrimary();
+        if (!left)
+                return NULL;
+
+        while (peekType() == T_MUL || peekType() == T_DIV)
+        {
+                TreeNode *expr = newNode("Expression");
+                addChild(expr, left);
+                addChild(expr, newNode(currentToken->lexeme));
+                advanceToken();
+                TreeNode *right = parsePrimary();
+                if (!right)
+                        return NULL;
+                addChild(expr, right);
+                left = expr;
+        }
+        return left;
+}
+
+TreeNode *parsePrimary()
+{
+        TokenType t = peekType();
+        if (t == T_IDENTIFIER || t == T_INTEGER || t == T_STRING_LITERAL)
+        {
+                TreeNode *n = newNode(currentToken->lexeme);
+                advanceToken();
+                return n;
+        }
+
+        if (t == T_LPAREN)
+        {
+                advanceToken();
+                TreeNode *inner = parseExpression();
+                if (!inner)
+                        return NULL;
+                if (peekType() != T_RPAREN)
+                {
+                        setParserError("expected ')' in expression");
+                        return NULL;
+                }
+                advanceToken();
+                return inner;
+        }
+
+        setParserError("invalid token in expression");
+        return NULL;
 }
 // ========================
 // TREE PRINTING FUNCTIONS
@@ -283,6 +436,8 @@ TreeNode *parseExpression()
 
 void printTree(TreeNode *root, int level)
 {
+        if (!root)
+                return;
         for (int i = 0; i < level; i++)
                 cout << "  ";
         cout << root->symbol << "\n";
@@ -290,4 +445,17 @@ void printTree(TreeNode *root, int level)
         {
                 printTree(root->children[i], level + 1);
         }
+}
+
+void freeTree(TreeNode *root)
+{
+        if (!root)
+                return;
+        for (int i = 0; i < root->childCount; i++)
+        {
+                freeTree(root->children[i]);
+        }
+        delete[] root->children;
+        delete[] root->symbol;
+        delete root;
 }

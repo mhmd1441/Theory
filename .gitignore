@@ -5,3 +5,7 @@ x64/
 *.exe 
 TheoryFi.0b16ceb3/ 
 build/
+.DS_Store
+course_content/
+lldb_bt.txt
+build/verify_all_output.txt
