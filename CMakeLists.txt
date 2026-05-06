@@ -31,6 +31,23 @@ add_executable(TheoryGUI ${SOURCES})
 # Link Qt6 libraries
 target_link_libraries(TheoryGUI Qt6::Core Qt6::Widgets)
 
+# Tests
+enable_testing()
+add_executable(TheoryTests
+    tests/theory_tests.cpp
+    code/automaton/automaton.cpp
+    code/lexer/lexer.cpp
+    code/parser/parser.cpp
+    code/semantic/semantic.cpp
+)
+add_test(NAME TheoryTests COMMAND TheoryTests)
+
+# Demo tool (non-interactive proof for grading/presentation)
+add_executable(AutomatonTransformDemo
+    tools/automaton_transform_demo.cpp
+    code/automaton/automaton.cpp
+)
+
 # Set Windows subsystem (optional)
 if(WIN32)
     set_target_properties(TheoryGUI PROPERTIES WIN32_EXECUTABLE TRUE)

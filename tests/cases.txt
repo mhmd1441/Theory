@@ -1,0 +1,33 @@
+### Each test is 4 lines:
+### NAME: <name>
+### INPUT: <program... may contain \n>
+### EXPECT: OK | PARSE_ERROR | SEMANTIC_ERROR
+### ---
+NAME: decl_and_assign_ok
+INPUT: int x = 5; x = x + 2; return x;
+EXPECT: OK
+---
+NAME: missing_semicolon_parse_error
+INPUT: int x = 5 x = 3;
+EXPECT: PARSE_ERROR
+---
+NAME: undeclared_variable_semantic_error
+INPUT: x = 3;
+EXPECT: SEMANTIC_ERROR
+---
+NAME: scope_shadowing_ok
+INPUT: int x = 1; { int x = 2; return x; } return x;
+EXPECT: OK
+---
+NAME: redeclare_same_scope_semantic_error
+INPUT: int x = 1; int x = 2;
+EXPECT: SEMANTIC_ERROR
+---
+NAME: type_mismatch_semantic_error
+INPUT: int x = "hi";
+EXPECT: SEMANTIC_ERROR
+---
+NAME: pl1_relop_notless_maps_ok
+INPUT: int x = 5; if (x !< 3) { return x; } return 0;
+EXPECT: OK
+---

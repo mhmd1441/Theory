@@ -57,7 +57,8 @@ int main()
             cout << "Tokens:\n";
             for (Token *t = tokenListHead; t; t = t->next)
             {
-                cout << "Token: " << t->type << "  Lexeme: " << t->lexeme << "\n";
+                cout << "Token: " << tokenTypeName(t->type) << "  Lexeme: " << t->lexeme
+                     << "  @(" << t->line << "," << t->col << ")\n";
             }
             cout << "\n";
 
@@ -76,26 +77,24 @@ int main()
                 if (!errorFlag)
                 {
                     cout << "Semantic check passed.\n\nConverted Code (to pseudo-Python):\n";
+                    cout << declaredIdentifiersReport() << "\n\n";
                     generateCode(parseTree, 0);
                 }
                 else
                 {
                     cout << "Semantic checks failed.\n";
                 }
+                freeTree(parseTree);
             }
             else
             {
                 cout << "Parsing failed.\n";
+                if (parseTree)
+                        freeTree(parseTree);
             }
 
             // Cleanup symbol table
-            while (symbolTable)
-            {
-                Symbol *tmp = symbolTable;
-                symbolTable = symbolTable->next;
-                delete[] tmp->name;
-                delete tmp;
-            }
+            resetSemanticState();
 
             // Cleanup tokens
             while (tokenListHead)

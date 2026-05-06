@@ -1,0 +1,76 @@
+Theory Project - Features and Notes
+==================================
+
+This file summarizes what is implemented and what you can still add.
+
+1) Implemented Core Features
+----------------------------
+- Automaton management (add/delete/search/test by ID)
+- Lexical analysis with token stream and line/column positions
+- Recursive-descent parsing with expression precedence
+- Parse tree output (text + interactive tree widget)
+- Semantic checks (undeclared/redeclared/type mismatch + block scope)
+- Pseudo-Python code generation
+
+2) Advanced Features Implemented
+--------------------------------
+- Automaton graph visualization in GUI:
+  - state circles
+  - final-state double circles
+  - transition arrows + labels
+  - self-loops
+  - initial state arrow
+- NFA->DFA conversion (epsilon closure + subset construction)
+- DFA minimization
+- DFA equivalence checker (exact product-state check)
+- Program -> Automaton (experimental linear token-sequence DFA demo)
+- Dark mode toggle in GUI (View menu)
+- Export options:
+  - full report text export
+  - CSV token export
+  - save parse tree text
+  - save generated code
+- Demo presets:
+  - normal example
+  - error demo example
+- Full verification script:
+  - configure/build/tests/console smoke/demo
+
+3) Where To Find Important Commands
+-----------------------------------
+- Full verify: ./scripts/verify_all.sh
+- Build: cmake -S . -B build && cmake --build build
+- Test: ctest --test-dir build --output-on-failure
+- Package submission: ./scripts/package_submission.sh
+
+4) GUI Usage Notes
+------------------
+- Automaton visualization appears in "Automaton Graph" on the right side.
+- Program analysis tab supports stage-by-stage execution:
+  - 1) Lex
+  - 2) Parse
+  - 3) Semantic
+  - 4) Codegen
+- Dark mode: View -> Toggle Dark Mode
+
+5) Newly Added in Final Boost
+-----------------------------
+- Dark mode toggle
+- Parsing trace tab
+- CSV export
+- Save parse tree / save generated code
+- Save parse tree DOT
+- Export automaton graph DOT/PNG
+- Export All Artifacts bundle
+- Automaton simulation trace mode (state-by-state)
+- epsilon-closure calculator
+- Program -> Automaton (experimental) option
+- Exact DFA equivalence check
+- Run Demo Mode button
+
+6) Optional Future Improvements
+-------------------------------
+- SVG/PNG export of automaton graph
+- Parse tree export as JSON/Graphviz
+- Multi-file project input and batch analysis mode
+
