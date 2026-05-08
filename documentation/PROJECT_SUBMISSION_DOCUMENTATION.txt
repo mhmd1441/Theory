@@ -1,0 +1,145 @@
+Theory of Computation Final Project
+
+Implementation of a Language through Automata and Formal Grammar
+
+Table of Contents
+
+1. Introduction and project idea
+
+2. What the project is asked to do
+
+3. System architecture
+
+4. Automaton module
+
+5. Lexical analysis
+
+6. Grammar and parser
+
+7. Semantic analysis
+
+8. Code generation
+
+9. GUI and console interfaces
+
+10. Testing, expected output, and demo script
+
+11. Limitations and future improvements
+
+12. Conclusion
+
+1. Introduction
+
+This project connects the theoretical topics studied in Theory of Computation with a practical compiler-like application. The system reads a simplified pseudo-C program, tokenizes it, checks it against a formal grammar, builds a parse tree, verifies basic semantic correctness, and translates the accepted program into pseudo-Python. In parallel, it allows the user to create, inspect, test, and visualize finite automata.
+
+The main idea is that programming languages can be studied as formal languages. The lexer uses regular-language concepts, the parser uses context-free grammar rules, semantic analysis checks meaning beyond grammar, and the automaton module shows state-based computation directly.
+
+2. Project Requirements and How We Covered Them
+
+3. System Architecture
+
+The project is organized into independent modules. Each module has a clear responsibility, which makes the system easier to explain and easier to test.
+
+4. Automaton Module
+
+Code location note
+
+The automaton module is the most direct Theory of Computation part of the project. An automaton is represented by an ID, alphabet, list of states, initial state, transition function, and final states. The system stores multiple automata in a dynamic array, so the user can create more than one machine and refer to each one by ID.
+
+The transition function is stored as an array of transition structures. Each transition has an origin state, a label/symbol, and a target state. This matches the theoretical notation delta(q, a) = p.
+
+The transition table is useful in a presentation because it converts the graph into a formal table. This makes the project easier to relate to textbook DFA/NFA definitions.
+
+The step-by-step simulation shows exactly how an input string is processed. Instead of only saying ACCEPTED or REJECTED, the system explains every transition.
+
+Extra automaton features
+
+Code location note
+
+These extra features are useful for grading because they show more than simple storage. They demonstrate real automata algorithms and make the GUI more theory-oriented.
+
+5. Lexical Analysis
+
+Code location note
+
+The lexical analyzer reads characters from the source program and groups them into meaningful tokens. This is where regular language theory appears: keywords, identifiers, integers, operators, and punctuation are recognized by scanning patterns.
+
+The line and column information makes later syntax errors more professional because the parser can tell the user where the problem occurred.
+
+6. Grammar and Parser
+
+Code location note
+
+The parser is implemented using recursive descent. Each grammar rule is represented by a function. For example, parseProgram handles the Program rule, parseStatement handles statement syntax, and parseExpression starts the expression grammar.
+
+The parser builds a TreeNode parse tree. This tree is important because it represents the syntactic structure of the program and is later used by semantic analysis and code generation.
+
+7. Semantic Analysis
+
+Code location note
+
+Syntax correctness does not guarantee that a program makes sense. Semantic analysis checks meaning. The project verifies that variables are declared before use, prevents redeclaration in the same scope, checks type compatibility, and handles block scopes.
+
+The most important demonstration case is return y; because it proves the semantic analyzer catches meaning errors that the parser alone cannot catch.
+
+8. Code Generation
+
+Code location note
+
+After lexical, syntax, and semantic checks pass, the program is translated into pseudo-Python. This shows the full compiler pipeline: analysis first, then translation. The generated code keeps the meaning of declarations, assignments, if statements, while statements, returns, and expressions.
+
+9. GUI and Console Interfaces
+
+Code location note
+
+The GUI is the presentation-friendly version. It provides separate tabs for automata and program analysis. The automaton tab includes graph visualization, transition table, trace simulation, NFA to DFA conversion, DFA minimization, equivalence checking, and export options. The program analysis tab shows tokens, parse tree, parser trace, semantic table, and generated code.
+
+The console version is useful if Qt is not available. It still supports adding/searching/testing automata and running the compiler pipeline from a terminal.
+
+10. Testing and Expected Results
+
+Code location note
+
+The automated tests check valid programs, missing semicolon parse errors, undeclared variables, scope shadowing, redeclaration errors, type mismatches, and relational operator behavior.
+
+11. Demonstration Script
+
+Use this order when presenting to the doctor. It avoids showing results before explaining the concept.
+
+Start with the project idea: a mini compiler plus automata laboratory.
+
+Open the Automaton Management tab and explain the automaton structure: states, alphabet, initial state, transitions, final states.
+
+Add or load a sample DFA. Show the graph first, then show the transition table.
+
+Run an input such as ab and explain the step-by-step trace.
+
+Move to Program Analysis. Load the example program.
+
+Run Lex first and explain tokens with line/column positions.
+
+Run Parse and explain the parse tree and grammar rules.
+
+Run Semantic and explain the symbol table, types, and scope.
+
+Run Codegen and show the pseudo-Python translation.
+
+Load an error demo and show the professional syntax/semantic error messages.
+
+Finish by mentioning automated tests and the 7/7 result.
+
+12. Limitations and Future Improvements
+
+The automaton structure stores states as single characters, so names like q0 are displayed logically in the interface but internally simplified.
+
+The source language is intentionally small. It supports declarations, assignments, if, while, return, blocks, integer/string expressions, and common operators, but it is not a full C compiler.
+
+The generated output is pseudo-Python, designed for demonstration and readability rather than direct execution in every case.
+
+Future work could include multi-character automaton state identifiers, functions, arrays, boolean types, and animated GUI highlighting of the current automaton state during simulation.
+
+13. Conclusion
+
+This project successfully demonstrates how Theory of Computation concepts appear inside practical software. Automata are used to model state-based computation, lexical analysis uses regular-language recognition, parsing applies context-free grammar rules, semantic analysis checks meaning, and code generation translates a validated program into another language.
+
+The strongest part of the project is that it is not only theoretical and not only code. It contains a GUI, console fallback, visual automata, transition tables, step-by-step simulation, parse trees, semantic checks, translation output, and automated tests. This makes it suitable for both demonstration and explanation.

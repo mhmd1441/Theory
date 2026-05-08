@@ -1,0 +1,175 @@
+THEORY OF COMPUTATION PROJECT
+RUN, BUILD, AND TEST INSTRUCTIONS
+
+Project root:
+C:\Users\user\Desktop\Folders\Courset_jemaa\Theory\Project\FinalProject\TheoryFinalProject
+
+
+1. WHAT THIS PROJECT CONTAINS
+
+The project has two ways to run:
+
+1) Console version
+   - Does not need Qt.
+   - Runs from Visual Studio Developer PowerShell.
+   - Good for quick testing.
+
+2) GUI version
+   - Needs Qt 6 and CMake.
+   - Best for presentation because it shows visual outputs.
+   - Shows automata, transition tables, simulation trace, tokens, parse tree, semantic result, and generated code.
+
+
+2. RUNNING THE CONSOLE VERSION WITHOUT QT
+
+Open:
+Visual Studio 2022 Developer PowerShell
+
+Go to the project folder:
+
+cd C:\Users\user\Desktop\Folders\Courset_jemaa\Theory\Project\FinalProject\TheoryFinalProject
+
+Compile:
+
+cl /nologo /std:c++17 /EHsc /Fe:TheoryConsole.exe TheoryFinalProject.cpp code\automaton\automaton.cpp code\lexer\lexer.cpp code\parser\parser.cpp code\semantic\semantic.cpp
+
+Run:
+
+.\TheoryConsole.exe
+
+Expected menu:
+
+Menu:
+1. Add Automaton
+2. Delete Automaton
+3. Search Automaton
+4. Test Automaton
+5. Tokenize and Parse Input Program
+6. Exit
+
+
+3. RUNNING THE GUI VERSION WITH QT
+
+Requirements:
+- Qt 6
+- CMake
+- Visual Studio C++ compiler or compatible MinGW compiler
+
+Typical commands:
+
+cd C:\Users\user\Desktop\Folders\Courset_jemaa\Theory\Project\FinalProject\TheoryFinalProject
+mkdir build
+cd build
+cmake .. -G "Visual Studio 17 2022" -A x64
+cmake --build . --config Release
+.\Release\TheoryGUI.exe
+
+If CMake cannot find Qt, set the Qt path first.
+Example:
+
+$env:CMAKE_PREFIX_PATH="C:\Qt\6.11.0\msvc2022_64"
+cmake .. -G "Visual Studio 17 2022" -A x64
+
+The exact Qt folder depends on the kit installed on the machine.
+
+
+4. AUTOMATED TESTS
+
+Test source:
+tests\theory_tests.cpp
+
+Test cases:
+tests\cases.txt
+
+Build tests:
+
+cl /nologo /std:c++17 /EHsc /Fe:TheoryTests.exe tests\theory_tests.cpp code\automaton\automaton.cpp code\lexer\lexer.cpp code\parser\parser.cpp code\semantic\semantic.cpp
+
+Run tests:
+
+.\TheoryTests.exe
+
+Expected result:
+
+Passed 7/7 tests.
+
+
+5. VALID PROGRAM EXAMPLE
+
+Use this input in the program analyzer:
+
+int x = 10;
+if (x > 5) {
+    int y = x * 2;
+    return y;
+} else {
+    return 0;
+}
+
+Expected behavior:
+- Lexer prints tokens.
+- Parser builds a parse tree.
+- Semantic analyzer accepts the program.
+- Code generation shows pseudo-Python output.
+
+
+6. SYNTAX ERROR EXAMPLE
+
+Input:
+
+int x = 10;
+if (x > 5 {
+    return x;
+}
+
+Expected output:
+
+Parsing failed.
+Syntax error near token '{'
+Expected ')' after condition
+
+
+7. SEMANTIC ERROR EXAMPLE
+
+Input:
+
+int x = 10;
+return y;
+
+Expected output:
+
+Semantic error: variable 'y' used before declaration.
+Semantic checks failed.
+
+
+8. AUTOMATON EXAMPLE
+
+States:
+A B C
+
+Alphabet:
+a b
+
+Initial state:
+A
+
+Transitions:
+A --a--> B
+B --b--> C
+C --b--> C
+
+Final state:
+C
+
+Input:
+ab
+
+Expected result:
+
+Step-by-step simulation
+A --a--> B
+B --b--> C
+Result: ACCEPTED
+
+The automaton search output should also show a transition table.
+

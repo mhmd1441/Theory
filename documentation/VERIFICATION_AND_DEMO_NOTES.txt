@@ -1,0 +1,169 @@
+THEORY OF COMPUTATION PROJECT
+VERIFICATION AND DEMO NOTES
+
+
+1. FINAL CHECK STATUS
+
+The final code check verified:
+
+- No merge conflict markers remained in C++ source files.
+- Console version compiled successfully with MSVC.
+- Automated test executable ran successfully.
+- All automated tests passed.
+- Syntax errors show clear messages.
+- Semantic errors catch undeclared variables.
+- Automaton simulation shows step-by-step output.
+- Automaton search shows a transition table.
+
+Automated test result:
+
+Passed 7/7 tests.
+
+
+2. IMPORTANT PROJECT FILES
+
+Main console application:
+TheoryFinalProject.cpp
+
+Main GUI application:
+TheoryGUI_single.cpp
+
+Automaton logic:
+code\automaton\automaton.cpp
+code\automaton\automaton.h
+
+Lexer:
+code\lexer\lexer.cpp
+code\lexer\lexer.h
+
+Parser:
+code\parser\parser.cpp
+code\parser\parser.h
+
+Semantic analyzer:
+code\semantic\semantic.cpp
+code\semantic\semantic.h
+
+Tests:
+tests\theory_tests.cpp
+tests\cases.txt
+
+CMake build file:
+CMakeLists.txt
+
+
+3. FEATURES TO SHOW IN THE PRESENTATION
+
+Automaton features:
+- Add automaton.
+- Search automaton.
+- Test input string.
+- Show step-by-step transition trace.
+- Show transition table.
+- Convert NFA to DFA.
+- Minimize DFA.
+- Check DFA equivalence.
+
+Compiler pipeline features:
+- Lexical analysis.
+- Parsing.
+- Parse tree output.
+- Semantic checking.
+- Pseudo-Python code generation.
+- Better error messages.
+
+GUI features:
+- Automaton forms.
+- Automaton visualization.
+- Transition table tab.
+- Simulation trace output.
+- Program input editor.
+- Tokens table.
+- Parse tree output.
+- Semantic result display.
+- Generated code display.
+
+
+4. SUGGESTED DEMO FLOW
+
+Step 1:
+Open the GUI if Qt is available.
+If Qt is not available, open the console version.
+
+Step 2:
+Create a simple automaton:
+
+States: A B C
+Alphabet: a b
+Initial: A
+Final: C
+Transitions:
+A --a--> B
+B --b--> C
+C --b--> C
+
+Step 3:
+Test input:
+
+ab
+
+Explain that the machine starts at A, reads a, moves to B, reads b, moves to C, and accepts because C is final.
+
+Step 4:
+Show the transition table.
+Explain that this table represents the transition function of the automaton.
+
+Step 5:
+Analyze a valid pseudo-C program:
+
+int x = 10;
+if (x > 5) {
+    int y = x * 2;
+    return y;
+} else {
+    return 0;
+}
+
+Explain the pipeline:
+source code -> tokens -> parse tree -> semantic analysis -> generated code
+
+Step 6:
+Show a syntax error:
+
+int x = 10;
+if (x > 5 {
+    return x;
+}
+
+Expected:
+Syntax error near token '{'
+Expected ')' after condition
+
+Step 7:
+Show a semantic error:
+
+int x = 10;
+return y;
+
+Expected:
+Semantic error: variable 'y' used before declaration.
+
+
+5. WHAT TO SAY AS A SUMMARY
+
+This project connects Theory of Computation with a practical implementation.
+The automaton part demonstrates finite automata and formal language recognition.
+The compiler part demonstrates how programming languages are processed through lexical analysis, parsing, semantic checking, and code generation.
+The GUI and improved outputs make the project easier to understand, test, and present.
+
+
+6. CLEAN DOCUMENTATION STRUCTURE
+
+The documentation folder should contain the easy-to-open text files:
+
+PROJECT_SUBMISSION_DOCUMENTATION.txt
+RUN_BUILD_TEST_INSTRUCTIONS.txt
+VERIFICATION_AND_DEMO_NOTES.txt
+
+The old root-level Markdown reports were removed because they repeated information and made the project look messy.
+
