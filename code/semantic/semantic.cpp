@@ -282,6 +282,23 @@ void semanticCheck(TreeNode* root, bool& errorFlag, bool isLHS)
                         return;
                 }
 
+                if (root->childCount > 0 && strcmp(root->children[0]->symbol, "return") == 0)
+                {
+                        if (root->childCount > 1)
+                                inferExprType(root->children[1], errorFlag);
+                        return;
+                }
+
+                if (root->childCount > 0 &&
+                    (strcmp(root->children[0]->symbol, "if") == 0 ||
+                     strcmp(root->children[0]->symbol, "while") == 0))
+                {
+                        if (root->childCount > 2)
+                                inferExprType(root->children[2], errorFlag);
+                        if (errorFlag)
+                                return;
+                }
+
                 // Check for assignments
                 if (root->childCount > 0 && root->children[0]->childCount == 0 && isIdentifierStart(root->children[0]->symbol[0]))
                 {

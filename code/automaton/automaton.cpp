@@ -188,6 +188,36 @@ void searchAutomaton()
         {
                 cout << A.delta[i].origin << " --" << A.delta[i].label << "--> " << A.delta[i].target << "\n";
         }
+        cout << "\nTransition Table:\nState";
+        for (int a = 0; a < A.alphabetCount; a++)
+                cout << "\t" << A.alphabet[a];
+        cout << "\n";
+        for (int s = 0; s < A.stateCount; s++)
+        {
+                cout << A.states[s];
+                if (A.states[s] == A.qo)
+                        cout << "(start)";
+                if (findInArray(A.states[s], A.stateterminal, A.terminalCount))
+                        cout << "(final)";
+                for (int a = 0; a < A.alphabetCount; a++)
+                {
+                        cout << "\t";
+                        bool found = false;
+                        for (int t = 0; t < A.transitionCount; t++)
+                        {
+                                if (A.delta[t].origin == A.states[s] && A.delta[t].label == A.alphabet[a])
+                                {
+                                        if (found)
+                                                cout << ",";
+                                        cout << A.delta[t].target;
+                                        found = true;
+                                }
+                        }
+                        if (!found)
+                                cout << "-";
+                }
+                cout << "\n";
+        }
         cout << "Terminal States: ";
         for (int i = 0; i < A.terminalCount; i++)
                 cout << A.stateterminal[i] << " ";
@@ -254,9 +284,13 @@ void testAutomaton()
         cout << "Enter input string to test: ";
         cin >> input;
 
-        // call simulator
-        bool accepted = simulate(A, input);
+        string trace;
+        string errorMessage;
+        bool accepted = simulateWithTrace(A, input, trace, errorMessage);
 
+        cout << "\n" << trace;
+        if (!errorMessage.empty())
+                cout << "Simulation error: " << errorMessage << "\n";
         if (accepted)
                 cout << "Result: STRING ACCEPTED by Automaton " << id << endl;
         else
@@ -326,7 +360,9 @@ bool simulateWithTrace(const automat &A, const string &input, string &trace, str
 {
         ostringstream out;
         char current = A.qo;
-        out << "Start state: " << current << "\n";
+        out << "Step-by-step simulation\n";
+        out << "Input: " << input << "\n";
+        out << "Start state: " << current << "\n\n";
         for (size_t i = 0; i < input.size(); i++)
         {
                 char symbol = input[i];
@@ -342,7 +378,8 @@ bool simulateWithTrace(const automat &A, const string &input, string &trace, str
                 {
                         if (A.delta[t].origin == current && A.delta[t].label == symbol)
                         {
-                                out << "Step " << i + 1 << ": " << current << " --" << symbol << "--> " << A.delta[t].target << "\n";
+                                out << "Step " << i + 1 << ": read '" << symbol << "'\n";
+                                out << current << " --" << symbol << "--> " << A.delta[t].target << "\n\n";
                                 current = A.delta[t].target;
                                 transitionFound = true;
                                 break;
@@ -358,6 +395,7 @@ bool simulateWithTrace(const automat &A, const string &input, string &trace, str
         }
         bool accepted = findInArray(current, A.stateterminal, A.terminalCount);
         out << "End state: " << current << "\n";
+        out << current << (accepted ? " is a final state\n" : " is not a final state\n");
         out << "Result: " << (accepted ? "ACCEPTED" : "REJECTED") << "\n";
         trace = out.str();
         errorMessage.clear();

@@ -73,6 +73,7 @@ private:
     QPushButton *minimizeDfaButton;
     QGraphicsView *automatonGraphView;
     QGraphicsScene *automatonGraphScene;
+    QTableWidget *transitionTable;
     
     // Program analysis tab widgets
     QTextEdit *programInput;
@@ -280,6 +281,8 @@ private:
         automatonOutputTabs->addTab(outputArea, "General Output");
         automatonReportOutput = new QTextBrowser();
         automatonOutputTabs->addTab(automatonReportOutput, "Algorithms Report");
+        transitionTable = new QTableWidget();
+        automatonOutputTabs->addTab(transitionTable, "Transition Table");
         rightLayout->addWidget(automatonOutputTabs);
         
         splitter->addWidget(leftWidget);
@@ -874,18 +877,19 @@ private slots:
                 QMessageBox::warning(this, "Not Found", QString("Automaton with ID %1 not found").arg(id));
                 return;
             }
-            
-            QByteArray ba = inputStr.toLocal8Bit();
-            QString errorMessage;
-            bool result = simulateGUI(automata[idx], ba.data(), errorMessage);
-            
-            if (!errorMessage.isEmpty()) {
-                QMessageBox::warning(this, "Simulation Error", errorMessage);
-                automatonOutput->append(QString("Error: %1").arg(errorMessage));
-            } else {
-                QString resultStr = result ? "ACCEPTED" : "REJECTED";
-                automatonOutput->append(QString("Input '%1': %2").arg(inputStr).arg(resultStr));
-                outputArea->append(QString("Tested automaton %1 with input '%2': %3").arg(id).arg(inputStr).arg(resultStr));
+
+            std::string trace;
+            std::string errorMessage;
+            bool result = simulateWithTrace(automata[idx], inputStr.toStdString(), trace, errorMessage);
+            QString resultStr = result ? "ACCEPTED" : "REJECTED";
+
+            automatonOutput->append(QString("Input '%1': %2").arg(inputStr).arg(resultStr));
+            automatonReportOutput->setPlainText(QString::fromStdString(trace));
+            outputArea->append(QString("Tested automaton %1 with input '%2': %3").arg(id).arg(inputStr).arg(resultStr));
+            updateTransitionTable(idx);
+
+            if (!errorMessage.empty()) {
+                QMessageBox::warning(this, "Simulation Error", QString::fromStdString(errorMessage));
             }
         }
     }
@@ -909,6 +913,7 @@ private slots:
         bool accepted = simulateWithTrace(automata[idx], inputStr.toStdString(), trace, err);
         automatonReportOutput->setPlainText(QString::fromStdString(trace));
         outputArea->append(QString("Trace test for automaton %1: %2").arg(id).arg(accepted ? "ACCEPTED" : "REJECTED"));
+        updateTransitionTable(idx);
     }
 
     void epsilonClosureGUI() {
@@ -1212,6 +1217,7 @@ private slots:
             automatonIdInput->setText(automatonTable->item(row, 0)->text());
             if (row < automataCount) {
                 drawAutomatonGraph(row);
+                updateTransitionTable(row);
             }
         }
     }
@@ -1243,9 +1249,54 @@ private slots:
         }
         if (automataCount > 0) {
             drawAutomatonGraph(0);
+            updateTransitionTable(0);
         } else if (automatonGraphScene) {
             automatonGraphScene->clear();
+            if (transitionTable) {
+                transitionTable->clear();
+                transitionTable->setRowCount(0);
+                transitionTable->setColumnCount(0);
+            }
         }
+    }
+
+    void updateTransitionTable(int automatonIndex) {
+        if (!transitionTable)
+            return;
+        transitionTable->clear();
+        transitionTable->setRowCount(0);
+        transitionTable->setColumnCount(0);
+        if (automatonIndex < 0 || automatonIndex >= automataCount)
+            return;
+
+        const automat &A = automata[automatonIndex];
+        transitionTable->setRowCount(A.stateCount);
+        transitionTable->setColumnCount(A.alphabetCount + 1);
+
+        QStringList headers;
+        headers << "State";
+        for (int a = 0; a < A.alphabetCount; a++)
+            headers << QString(A.alphabet[a]);
+        transitionTable->setHorizontalHeaderLabels(headers);
+
+        for (int s = 0; s < A.stateCount; s++) {
+            QString stateLabel = QString(A.states[s]);
+            if (A.states[s] == A.qo)
+                stateLabel = "-> " + stateLabel;
+            if (findInArray(A.states[s], A.stateterminal, A.terminalCount))
+                stateLabel += " *";
+            transitionTable->setItem(s, 0, new QTableWidgetItem(stateLabel));
+
+            for (int a = 0; a < A.alphabetCount; a++) {
+                QStringList targets;
+                for (int t = 0; t < A.transitionCount; t++) {
+                    if (A.delta[t].origin == A.states[s] && A.delta[t].label == A.alphabet[a])
+                        targets << QString(A.delta[t].target);
+                }
+                transitionTable->setItem(s, a + 1, new QTableWidgetItem(targets.isEmpty() ? "-" : targets.join(",")));
+            }
+        }
+        transitionTable->resizeColumnsToContents();
     }
 
     void drawAutomatonGraph(int automatonIndex) {
@@ -1392,6 +1443,38 @@ private slots:
         runAnalysisPipeline(4);
     }
 
+    QString formatParserErrorForGui() const {
+        if (!hasParserError())
+            return "";
+
+        QString raw = QString::fromStdString(parserLastError);
+        QString firstLine = raw.section('\n', 0, 0);
+        QString hint = raw.contains('\n') ? raw.section('\n', 1) : "";
+        QString nearToken = "?";
+        QString expected = firstLine;
+
+        int gotPos = firstLine.indexOf("(got '");
+        if (gotPos >= 0) {
+            int tokenStart = gotPos + 6;
+            int tokenEnd = firstLine.indexOf("')", tokenStart);
+            if (tokenEnd > tokenStart)
+                nearToken = firstLine.mid(tokenStart, tokenEnd - tokenStart);
+            expected = firstLine.left(gotPos).trimmed();
+        }
+
+        int colonPos = expected.indexOf("): ");
+        if (colonPos >= 0)
+            expected = expected.mid(colonPos + 3).trimmed();
+        expected.replace("expected ", "Expected ");
+
+        QString formatted = "Syntax error near token '" + nearToken + "'\n";
+        formatted += expected + "\n";
+        if (!hint.isEmpty())
+            formatted += hint + "\n";
+        formatted += "\nRaw parser message:\n" + raw + "\n";
+        return formatted;
+    }
+
     void runAnalysisPipeline(int stage) {
         QString programText = programInput->toPlainText();
         if (programText.isEmpty()) {
@@ -1486,7 +1569,7 @@ private slots:
                 QString parseErrorText = "Parsing failed.\n\nSyntax errors detected in input program.\n\n";
                 if (hasParserError()) {
                     parseErrorText += "Details:\n";
-                    parseErrorText += QString::fromStdString(parserLastError) + "\n\n";
+                    parseErrorText += formatParserErrorForGui() + "\n";
                 }
                 parseErrorText += "Please check the following:\n";
                 parseErrorText += "• Missing semicolons after statements\n";

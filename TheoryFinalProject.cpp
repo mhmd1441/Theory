@@ -89,6 +89,31 @@ int main()
             else
             {
                 cout << "Parsing failed.\n";
+                if (hasParserError())
+                {
+                    string raw = parserLastError;
+                    string firstLine = raw.substr(0, raw.find('\n'));
+                    string nearToken = "?";
+                    string expected = firstLine;
+                    size_t gotPos = firstLine.find("(got '");
+                    if (gotPos != string::npos)
+                    {
+                        size_t tokenStart = gotPos + 6;
+                        size_t tokenEnd = firstLine.find("')", tokenStart);
+                        if (tokenEnd != string::npos)
+                                nearToken = firstLine.substr(tokenStart, tokenEnd - tokenStart);
+                        expected = firstLine.substr(0, gotPos);
+                    }
+                    size_t colonPos = expected.find("): ");
+                    if (colonPos != string::npos)
+                            expected = expected.substr(colonPos + 3);
+                    if (!expected.empty())
+                            expected[0] = (char)toupper((unsigned char)expected[0]);
+
+                    cout << "Syntax error near token '" << nearToken << "'\n";
+                    cout << expected << "\n";
+                    cout << raw << "\n";
+                }
                 if (parseTree)
                         freeTree(parseTree);
             }

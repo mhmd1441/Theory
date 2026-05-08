@@ -5,7 +5,9 @@
 #include <streambuf>
 #include <string>
 #include <csignal>
+#ifndef _WIN32
 #include <unistd.h>
+#endif
 
 #include "../code/lexer/lexer.h"
 #include "../code/parser/parser.h"
@@ -133,11 +135,13 @@ static bool testNfaToDfaAndMinimize()
 
 int main()
 {
+#ifndef _WIN32
     std::signal(SIGALRM, [](int) {
         std::cerr << "\n[FAIL] TheoryTests timed out\n";
         std::_Exit(3);
     });
     alarm(15);
+#endif
 
     ifstream in("tests/cases.txt");
     if (!in)
