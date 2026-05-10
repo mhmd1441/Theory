@@ -7,18 +7,11 @@
 #include <algorithm>
 
 
-
-// =======================================
-// GLOBAL VARIABLES - AUTOMATA MANAGEMENT
-// =======================================
 automat *automata = NULL;
 int automataCount = 0;
 int automataCapacity = 2;
 int nextAutomatonID = 1;
 
-// ==================
-// UTILITY FUNCTIONS
-// ==================
 
 bool findInArray(char c, char arr[], int len)
 {
@@ -54,10 +47,6 @@ void resizeAutomataArray()
                 automata = newArr;
         }
 }
-
-// ==============================
-// AUTOMATA MANAGEMENT FUNCTIONS
-// ==============================
 
 void addAutomaton()
 {
@@ -224,10 +213,6 @@ void searchAutomaton()
         cout << endl;
 }
 
-// ==============================
-// AUTOMATA SIMULATION FUNCTIONS
-// ==============================
-
 bool simulate(automat &A, const char *input)
 {
         char current = A.qo;
@@ -299,7 +284,6 @@ void testAutomaton()
 
 bool isDFA(const automat &A)
 {
-        // no epsilon transitions and no double definitions for same (origin,label)
         for (int i = 0; i < A.transitionCount; i++)
         {
                 if (A.delta[i].label == 'e')
@@ -426,8 +410,6 @@ string epsilonClosureReport(const automat &A, const string &statesCsv)
 static set<char> moveOnSymbol(const automat &A, const set<char> &states, char symbol)
 {
         set<char> result;
-        // NOTE: Do not iterate directly over `states` if `result` might alias it (future refactors).
-        // Copy to a stable container to avoid any iterator invalidation surprises.
         vector<char> st(states.begin(), states.end());
         for (char s : st)
         {
@@ -467,7 +449,6 @@ automat convertNfaToDfa(const automat &nfa, string &report)
         if (alpha.empty())
                 out << "Warning: alphabet is empty after removing epsilon 'e'.\n";
 
-        // BFS over subsets
         map<string, char> subsetToName;
         vector<set<char>> subsets;
         vector<char> names;
@@ -494,8 +475,6 @@ automat convertNfaToDfa(const automat &nfa, string &report)
                         out << "Abort: too many DFA subset-states (>1024). Check NFA definition.\n";
                         break;
                 }
-                // IMPORTANT: do not keep a reference into `subsets` while we may push_back
-                // new subsets (vector reallocation would invalidate references).
                 set<char> S = subsets[idx];
                 char fromName = subsetToName[subsetKey(S)];
                 for (char c : alpha)
@@ -512,7 +491,7 @@ automat convertNfaToDfa(const automat &nfa, string &report)
                                         out << "Abort: too many subset states (>1024).\n";
                                         break;
                                 }
-                                subsetToName[dk] = nextName <= 'Z' ? nextName++ : nextName++; // still increments, but may go past 'Z'
+                                subsetToName[dk] = nextName <= 'Z' ? nextName++ : nextName++;
                                 subsets.push_back(dest);
                                 names.push_back(subsetToName[dk]);
                         }
@@ -524,7 +503,6 @@ automat convertNfaToDfa(const automat &nfa, string &report)
                 }
         }
 
-        // Build DFA automat
         automat dfa;
         dfa.id = nextAutomatonID++;
         dfa.alphabetCount = (int)alpha.size();
@@ -547,7 +525,6 @@ automat convertNfaToDfa(const automat &nfa, string &report)
         vector<char> finals;
         for (const auto &kv : subsetToName)
         {
-                // reconstruct subset by key
                 set<char> subset;
                 for (char c : kv.first)
                         subset.insert(c);
@@ -661,7 +638,6 @@ bool areDfaEquivalentExact(const automat &a, const automat &b, string &report)
                 bool finB = findInArray(b.states[cur.second], b.stateterminal, b.terminalCount);
                 if (finA != finB)
                 {
-                        // reconstruct witness
                         string witness;
                         auto p = cur;
                         while (!(p.first == s0 && p.second == t0))
@@ -679,7 +655,6 @@ bool areDfaEquivalentExact(const automat &a, const automat &b, string &report)
                 {
                         int na = dfaMoveIndex(a, cur.first, c);
                         int nb = dfaMoveIndex(b, cur.second, c);
-                        // totalize by dead state (-1)
                         pair<int, int> nxt = {na, nb};
                         if (!visited.count(nxt))
                         {
@@ -709,12 +684,10 @@ automat minimizeDfa(const automat &dfa, string &report)
         {
             out << "Minimization requires a DFA (no epsilon, no double definitions).\n";
             report = out.str();
-            // Return a shallow copy-like new automaton (same as input) is risky; instead build a copy.
         }
 
         vector<char> alpha = alphabetWithoutEpsilon(dfa);
 
-        // Initial partition: finals vs non-finals
         vector<int> group(dfa.stateCount, 0);
         for (int i = 0; i < dfa.stateCount; i++)
         {
@@ -733,7 +706,6 @@ automat minimizeDfa(const automat &dfa, string &report)
                 int nextG = 0;
                 for (int i = 0; i < dfa.stateCount; i++)
                 {
-                        // signature: current group + for each symbol target group
                         string sig = to_string(group[i]) + "|";
                         for (char c : alpha)
                         {
@@ -760,12 +732,10 @@ automat minimizeDfa(const automat &dfa, string &report)
         for (int g : group)
                 groupCount = max(groupCount, g + 1);
 
-        // Name each group with a letter
         vector<char> groupName(groupCount, 0);
         for (int g = 0; g < groupCount; g++)
                 groupName[g] = (g < 26) ? (char)('A' + g) : (char)('a' + (g - 26) % 26);
 
-        // Build minimized DFA
         automat minDfa;
         minDfa.id = nextAutomatonID++;
         minDfa.alphabetCount = (int)alpha.size();
@@ -781,7 +751,6 @@ automat minimizeDfa(const automat &dfa, string &report)
         int startIdx = stateIndex(dfa, dfa.qo);
         minDfa.qo = groupName[group[startIdx]];
 
-        // transitions: for each group representative, define moves
         vector<transition> newTrans;
         for (int g = 0; g < groupCount; g++)
         {
@@ -801,7 +770,6 @@ automat minimizeDfa(const automat &dfa, string &report)
                 }
         }
 
-        // dedupe transitions
         sort(newTrans.begin(), newTrans.end(), [](const transition &a, const transition &b) {
                 if (a.origin != b.origin) return a.origin < b.origin;
                 if (a.label != b.label) return a.label < b.label;
@@ -816,7 +784,6 @@ automat minimizeDfa(const automat &dfa, string &report)
         for (int i = 0; i < minDfa.transitionCount; i++)
                 minDfa.delta[i] = newTrans[i];
 
-        // final groups: any group containing a final state
         vector<char> minFinals;
         for (int i = 0; i < dfa.stateCount; i++)
         {

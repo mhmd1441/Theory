@@ -38,12 +38,8 @@ void searchAutomaton();
 bool simulate(automat &A, const char *input);
 void testAutomaton();
 bool isDFA(const automat &A);
-// NFA -> DFA conversion (supports epsilon transitions labeled 'e')
 automat convertNfaToDfa(const automat &nfa, string &report);
-// DFA minimization (requires deterministic automaton, no epsilon)
 automat minimizeDfa(const automat &dfa, string &report);
-// Exact DFA equivalence check via product-state BFS
 bool areDfaEquivalentExact(const automat &a, const automat &b, string &report);
-// Course-aligned helpers
 bool simulateWithTrace(const automat &A, const string &input, string &trace, string &errorMessage);
 string epsilonClosureReport(const automat &A, const string &statesCsv);

@@ -1,16 +1,11 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include "lexer.h"
 
-// ========================
-// GLOBAL TOKEN VARIABLES
-// ========================
+
 
 Token *tokenListHead = NULL;
 Token *tokenListTail = NULL;
 
-// ===========================
-// LEXICAL ANALYSIS FUNCTIONS
-// ===========================
 
 const char *tokenTypeName(TokenType t)
 {
@@ -136,7 +131,6 @@ void lexicalAnalysis(const char *input)
                 }
                 else if (isdigit((unsigned char)*p))
                 {
-                        // integer
                         int startLine = line;
                         int startCol = col;
                         const char *start = p;
@@ -154,10 +148,9 @@ void lexicalAnalysis(const char *input)
                 }
                 else if (*p == '"')
                 {
-                        // string literal
                         int startLine = line;
                         int startCol = col;
-                        p++; // consume opening quote
+                        p++;
                         col++;
                         const char *start = p;
                         while (*p && *p != '"')
@@ -175,7 +168,7 @@ void lexicalAnalysis(const char *input)
                         delete[] buf;
                         if (*p == '"')
                         {
-                                p++; // consume closing quote
+                                p++; 
                                 col++;
                         }
                 }
@@ -201,9 +194,9 @@ void lexicalAnalysis(const char *input)
                                         if (op[1] == '=')
                                                 addToken(T_NEQ, op, startLine, startCol);
                                         else if (op[1] == '<')
-                                                addToken(T_GE, op, startLine, startCol); // !<  == >=
+                                                addToken(T_GE, op, startLine, startCol); 
                                         else if (op[1] == '>')
-                                                addToken(T_LE, op, startLine, startCol); // !>  == <=
+                                                addToken(T_LE, op, startLine, startCol); 
                                 }
                                 else if (op[0] == '<')
                                         addToken(T_LE, op, startLine, startCol);

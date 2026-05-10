@@ -4,10 +4,6 @@
 #include <set>
 #include <sstream>
 
-// =====================================
-// SEMANTIC ANALYSIS AND CODE GENERATION
-// =====================================
-
 Symbol *symbolTable = NULL;
 static int currentScopeLevel = 0;
 
@@ -137,7 +133,6 @@ static string expressionToString(TreeNode *node)
         return result;
 }
 
-// Helper function to add symbol to symbol table
 void addSymbol(const char *name, const char *type)
 {
         Symbol *newSymbol = new Symbol;
@@ -151,7 +146,6 @@ void addSymbol(const char *name, const char *type)
         cout << "Declared: " << type << " " << name << endl;
 }
 
-// Helper function to check if symbol exists
 bool symbolExists(const char *name)
 {
         Symbol *current = symbolTable;
@@ -216,7 +210,6 @@ void exitScope()
 
 void resetSemanticState()
 {
-        // Free all symbols regardless of scope ordering and reset scope level.
         Symbol *cur = symbolTable;
         while (cur)
         {
@@ -237,7 +230,6 @@ void semanticCheck(TreeNode* root, bool& errorFlag, bool isLHS)
 
         if (strcmp(root->symbol, "Statement") == 0)
         {
-                // New scope for blocks: Statement -> "{" StatementList "}"
                 if (root->childCount > 0 && strcmp(root->children[0]->symbol, "{") == 0)
                 {
                         enterScope();
@@ -251,7 +243,6 @@ void semanticCheck(TreeNode* root, bool& errorFlag, bool isLHS)
                         return;
                 }
 
-                // Check for declarations (int, string)
                 if (root->childCount > 0 &&
                     (strcmp(root->children[0]->symbol, "int") == 0 ||
                      strcmp(root->children[0]->symbol, "string") == 0))
@@ -299,7 +290,6 @@ void semanticCheck(TreeNode* root, bool& errorFlag, bool isLHS)
                                 return;
                 }
 
-                // Check for assignments
                 if (root->childCount > 0 && root->children[0]->childCount == 0 && isIdentifierStart(root->children[0]->symbol[0]))
                 {
                         if (root->childCount > 1 && strcmp(root->children[1]->symbol, "=") == 0)
@@ -349,7 +339,6 @@ void generateCode(TreeNode* root, int indent)
 
     if (strcmp(root->symbol, "Statement") == 0)
     {
-        // Handle declarations (int, string) - convert to Python
         if (root->childCount > 0 &&
             (strcmp(root->children[0]->symbol, "int") == 0 ||
                 strcmp(root->children[0]->symbol, "string") == 0))
@@ -358,15 +347,12 @@ void generateCode(TreeNode* root, int indent)
             const char* type = root->children[0]->symbol;
             const char* varName = (root->childCount > 1) ? root->children[1]->symbol : "";
 
-            // Check if there's an assignment
             if (root->childCount > 2 && strcmp(root->children[2]->symbol, "=") == 0)
             {
-                // Declaration with initialization: type var = value
                 cout << varName << " = " << expressionToString(root->children[3]) << endl;
             }
             else
             {
-                // Declaration without initialization: type var
                 if (strcmp(type, "int") == 0)
                     cout << varName << " = 0" << endl;
                 else if (strcmp(type, "string") == 0)
@@ -414,7 +400,6 @@ void generateCode(TreeNode* root, int indent)
             return;
         }
 
-        // Handle regular assignments
         if (root->childCount > 3 && strcmp(root->children[1]->symbol, "=") == 0)
         {
             printIndent(indent);

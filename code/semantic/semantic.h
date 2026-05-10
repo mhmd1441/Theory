@@ -25,5 +25,4 @@ void semanticCheck(TreeNode* root, bool& errorFlag, bool isLHS = false);
 void printIndent(int indent);
 void generateCode(TreeNode* root, int indent = 0);
 
-// Course-aligned attribute output: set of declared identifiers (synthesized attribute)
 std::string declaredIdentifiersReport();

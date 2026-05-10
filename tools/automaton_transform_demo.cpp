@@ -8,12 +8,12 @@ using namespace std;
 
 int main()
 {
-    // Ensure automaton module globals are initialized for demos
+
     automata = new automat[automataCapacity]();
 
-    // Small NFA with epsilon split:
-    // q0 -e-> q1 (accepts a*)
-    // q0 -e-> q2 (accepts b*)
+
+
+
     automat nfa;
     nfa.id = 0;
     nfa.alphabetCount = 3;
@@ -41,7 +41,7 @@ int main()
     cout << "=== DFA minimization report ===\n" << report2 << "\n";
     cout << "Min DFA check: " << (isDFA(minDfa) ? "DFA" : "Not DFA") << "\n";
 
-    // Cleanup
+
     delete[] nfa.alphabet;
     delete[] nfa.states;
     delete[] nfa.delta;

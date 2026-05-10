@@ -15,7 +15,6 @@ int main()
 	int choice;
     do
     {
-        // Display menu
         cout << "\nMenu:\n";
         cout << "1. Add Automaton\n";
         cout << "2. Delete Automaton\n";
@@ -51,7 +50,6 @@ int main()
             cout << "Enter program (single line, pseudo-C):\n";
             cin.getline(inputLine, 1024);
 
-            // Lexical analysis
             lexicalAnalysis(inputLine);
 
             cout << "Tokens:\n";
@@ -62,7 +60,6 @@ int main()
             }
             cout << "\n";
 
-            // Parsing
             currentToken = tokenListHead;
             TreeNode *parseTree = parseProgram();
 
@@ -118,10 +115,8 @@ int main()
                         freeTree(parseTree);
             }
 
-            // Cleanup symbol table
             resetSemanticState();
 
-            // Cleanup tokens
             while (tokenListHead)
             {
                 Token *tmp = tokenListHead;
@@ -144,7 +139,6 @@ int main()
         }
     } while (choice != 6);
 
-    // Free automata memory
     for (int i = 0; i < automataCount; i++)
     {
         delete[] automata[i].states;

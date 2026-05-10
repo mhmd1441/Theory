@@ -1,10 +1,6 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include "parser.h"
 
-// ===========================
-// PARSE TREE NODE MANAGEMENT
-// ===========================
-
 Token *currentToken = NULL;
 string parserLastError = "";
 static string parserTrace = "";
@@ -53,10 +49,6 @@ const string &getParserTrace()
         return parserTrace;
 }
 
-// ===========================
-// PARSE TREE NODE MANAGEMENT
-// ===========================
-
 TreeNode *newNode(const char *sym)
 {
         TreeNode *n = new TreeNode;
@@ -98,11 +90,6 @@ TokenType peekType()
         return T_EOF;
 }
 
-// ========================================================================
-// PARSING FUNCTIONS - SYNTAX ANALYZER - recursive descent parsing approach
-// ========================================================================
-
-
 TreeNode *parseProgram()
 {
         clearParserError();
@@ -126,7 +113,6 @@ TreeNode *parseStatementList()
                         return node;
                 addChild(node, st);
 
-                // Only recurse if we haven't reached EOF
                 if (peekType() != T_EOF)
                 {
                         TreeNode *stl = parseStatementList();
@@ -142,18 +128,15 @@ TreeNode *parseStatement()
         TreeNode *node = newNode("Statement");
         TokenType t = peekType();
 
-        // Handle declarations (int, string)
         if (t == T_INT || t == T_STRING)
         {
                 trace("rule: Statement -> (int|string) id (= Expression)? ;");
-                // Add the type keyword
                 if (t == T_INT)
                         addChild(node, newNode("int"));
                 else
                         addChild(node, newNode("string"));
                 advanceToken();
 
-                // Get the identifier
                 if (peekType() != T_IDENTIFIER)
                 {
                         setParserError("expected identifier after type");
@@ -163,7 +146,6 @@ TreeNode *parseStatement()
                 addChild(node, newNode(identTok->lexeme));
                 advanceToken();
 
-                // Optional initialization with =
                 if (peekType() == T_ASSIGN)
                 {
                         addChild(node, newNode("="));
@@ -175,7 +157,6 @@ TreeNode *parseStatement()
                         addChild(node, expr);
                 }
 
-                // Require semicolon
                 if (peekType() != T_SEMICOLON)
                 {
                         setParserError("expected ';' after declaration");
@@ -191,7 +172,7 @@ TreeNode *parseStatement()
         {
                 trace("rule: Statement -> if ( Expression ) Statement (else Statement)?");
                 addChild(node, newNode("if"));
-                advanceToken(); // consume 'if'
+                advanceToken();
 
                 if (peekType() != T_LPAREN)
                 {
@@ -430,9 +411,6 @@ TreeNode *parsePrimary()
         setParserError("invalid token in expression");
         return NULL;
 }
-// ========================
-// TREE PRINTING FUNCTIONS
-// ========================
 
 void printTree(TreeNode *root, int level)
 {

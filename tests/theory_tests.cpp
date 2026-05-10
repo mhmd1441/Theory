@@ -69,7 +69,7 @@ static bool runOne(const string &name, const string &input, Expectation exp)
     bool errorFlag = false;
     if (name != "pl1_relop_notless_maps_ok")
     {
-        // Silence semantic output during tests (avoids huge logs / CI pipe issues)
+
         std::ostringstream nullOut;
         std::streambuf *oldCout = std::cout.rdbuf(nullOut.rdbuf());
         semanticCheck(tree, errorFlag, false);
@@ -87,7 +87,7 @@ static bool runOne(const string &name, const string &input, Expectation exp)
 static bool testNfaToDfaAndMinimize()
 {
     cout << "[RUN] nfa_to_dfa_and_minimize" << std::endl;
-    // NFA: accepts "a" or "b" (epsilon split) over {a,b,e}
+
     automat nfa;
     nfa.id = 999;
     nfa.alphabetCount = 3;
@@ -109,12 +109,12 @@ static bool testNfaToDfaAndMinimize()
     automat dfa = convertNfaToDfa(nfa, rep);
     bool ok = isDFA(dfa);
 
-    // minimize should still be DFA
+
     string rep2;
     automat minDfa = minimizeDfa(dfa, rep2);
     ok = ok && isDFA(minDfa);
 
-    // cleanup allocated memory
+
     delete[] nfa.alphabet;
     delete[] nfa.states;
     delete[] nfa.delta;
@@ -176,7 +176,7 @@ int main()
             name = trimPrefix(line, "NAME: ");
             std::getline(in, line);
             input = trimPrefix(line, "INPUT: ");
-            // allow \n escapes
+
             for (size_t pos = 0; (pos = input.find("\\n", pos)) != string::npos;)
             {
                 input.replace(pos, 2, "\n");
@@ -184,7 +184,7 @@ int main()
             }
             std::getline(in, line);
             expectStr = trimPrefix(line, "EXPECT: ");
-            // consume separator
+
             std::getline(in, line);
 
             total++;
@@ -203,8 +203,8 @@ int main()
         }
     }
 
-    // NOTE: NFA→DFA + minimization are demonstrated via GUI. They are intentionally
-    // not executed in the automated runner to avoid long-running behavior on some systems.
+
+
 
     cout << "\nPassed " << passed << "/" << total << " tests.\n";
     return (passed == total) ? 0 : 1;

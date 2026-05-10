@@ -53,12 +53,10 @@ class TheoryGUI : public QMainWindow {
     Q_OBJECT
 
 private:
-    // Main widgets
     QTabWidget *tabWidget;
     QTextEdit *outputArea;
     QStatusBar *statusBar;
     
-    // Automaton tab widgets
     QTableWidget *automatonTable;
     QLineEdit *automatonIdInput;
     QComboBox *automatonPresetInput;
@@ -75,7 +73,6 @@ private:
     QGraphicsScene *automatonGraphScene;
     QTableWidget *transitionTable;
     
-    // Program analysis tab widgets
     QTextEdit *programInput;
     QTextBrowser *tokenOutput;
     QTextBrowser *parseTreeOutput;
@@ -112,20 +109,16 @@ private:
         setGeometry(100, 100, 1200, 800);
         showMaximized();
         
-        // Create central widget with main layout
         QWidget *centralWidget = new QWidget(this);
         setCentralWidget(centralWidget);
         QVBoxLayout *mainLayout = new QVBoxLayout(centralWidget);
         
-        // Create tab widget
         tabWidget = new QTabWidget();
         mainLayout->addWidget(tabWidget);
         
-        // Create tabs
         setupAutomatonTab();
         setupProgramAnalysisTab();
         
-        // Status bar
         statusBar = new QStatusBar();
         setStatusBar(statusBar);
         statusBar->showMessage("Ready");
@@ -135,15 +128,12 @@ private:
         QWidget *automatonTab = new QWidget();
         QVBoxLayout *layout = new QVBoxLayout(automatonTab);
         
-        // Create splitter for resizable sections
         QSplitter *splitter = new QSplitter(Qt::Horizontal);
         layout->addWidget(splitter);
         
-        // Left side - Automaton list and input
         QWidget *leftWidget = new QWidget();
         QVBoxLayout *leftLayout = new QVBoxLayout(leftWidget);
         
-        // Automaton table
         QGroupBox *tableGroup = new QGroupBox("Automaton List");
         QVBoxLayout *tableLayout = new QVBoxLayout(tableGroup);
         automatonTable = new QTableWidget();
@@ -154,7 +144,6 @@ private:
         tableLayout->addWidget(automatonTable);
         leftLayout->addWidget(tableGroup);
         
-        // Automaton input form
         QGroupBox *inputGroup = new QGroupBox("Add/Edit Automaton");
         QGridLayout *inputLayout = new QGridLayout(inputGroup);
         
@@ -212,7 +201,6 @@ private:
         
         leftLayout->addWidget(inputGroup);
         
-        // Automaton control buttons
         QGridLayout *buttonLayout = new QGridLayout();
         QPushButton *addButton = new QPushButton("Add Automaton");
         QPushButton *deleteButton = new QPushButton("Delete");
@@ -226,7 +214,6 @@ private:
         buttonLayout->addWidget(equivButton, 1, 1, 1, 2);
         leftLayout->addLayout(buttonLayout);
         
-        // Test automaton section
         QGroupBox *testGroup = new QGroupBox("Test Automaton");
         QVBoxLayout *testLayout = new QVBoxLayout(testGroup);
         
@@ -263,7 +250,6 @@ private:
         leftLayout->addWidget(testGroup);
         leftLayout->addStretch();
         
-        // Right side - Output area
         QWidget *rightWidget = new QWidget();
         QVBoxLayout *rightLayout = new QVBoxLayout(rightWidget);
         
@@ -291,7 +277,6 @@ private:
         
         tabWidget->addTab(automatonTab, "Automaton Management");
         
-        // Connect button signals
         connect(addButton, &QPushButton::clicked, this, &TheoryGUI::addAutomatonGUI);
         connect(deleteButton, &QPushButton::clicked, this, &TheoryGUI::deleteAutomatonGUI);
         connect(searchButton, &QPushButton::clicked, this, &TheoryGUI::searchAutomatonGUI);
@@ -312,7 +297,6 @@ private:
         QWidget *analysisTab = new QWidget();
         QVBoxLayout *layout = new QVBoxLayout(analysisTab);
         
-        // Input section
         QGroupBox *inputGroup = new QGroupBox("Program Input (Pseudo-C)");
         QVBoxLayout *inputLayout = new QVBoxLayout(inputGroup);
         
@@ -367,46 +351,36 @@ private:
         
         layout->addWidget(inputGroup);
         
-        // Output tabs
         QTabWidget *outputTabs = new QTabWidget();
         
-        // Tokens tab
         tokenOutput = new QTextBrowser();
         outputTabs->addTab(tokenOutput, "Tokens");
         
-        // Parse tree tab
         parseTreeOutput = new QTextBrowser();
         outputTabs->addTab(parseTreeOutput, "Parse Tree");
 
-        // Interactive parse tree tab
         parseTreeWidget = new QTreeWidget();
         parseTreeWidget->setHeaderLabel("Interactive Parse Tree");
         outputTabs->addTab(parseTreeWidget, "Parse Tree (Interactive)");
         
-        // Semantic analysis tab
         semanticOutput = new QTextBrowser();
         outputTabs->addTab(semanticOutput, "Semantic Analysis");
         
-        // Code generation tab
         codeGenOutput = new QTextBrowser();
         outputTabs->addTab(codeGenOutput, "Generated Code (Python)");
 
-        // Parsing trace tab
         traceOutput = new QTextBrowser();
         outputTabs->addTab(traceOutput, "Parsing Trace");
 
-        // History tab
         historyList = new QListWidget();
         outputTabs->addTab(historyList, "Run History");
 
-        // Symbol table tab
         symbolTableView = new QTableWidget();
         symbolTableView->setColumnCount(3);
         symbolTableView->setHorizontalHeaderLabels(QStringList() << "Name" << "Type" << "Scope");
         symbolTableView->horizontalHeader()->setStretchLastSection(true);
         outputTabs->addTab(symbolTableView, "Symbol Table");
 
-        // Grammar tab
         grammarOutput = new QTextBrowser();
         grammarOutput->setPlainText(
             "Grammar (simplified):\n"
@@ -436,7 +410,6 @@ private:
         
         tabWidget->addTab(analysisTab, "Program Analysis");
         
-        // Connect signals
         connect(analyzeButton, &QPushButton::clicked, this, &TheoryGUI::analyzeProgram);
         connect(lexButton, &QPushButton::clicked, this, &TheoryGUI::analyzeLexOnly);
         connect(parseButton, &QPushButton::clicked, this, &TheoryGUI::analyzeUntilParse);
@@ -459,14 +432,12 @@ private:
     void setupMenus() {
         QMenuBar *menuBar = this->menuBar();
         
-        // File menu
         QMenu *fileMenu = menuBar->addMenu("File");
         
         QAction *exitAction = new QAction("Exit", this);
         connect(exitAction, &QAction::triggered, this, &QWidget::close);
         fileMenu->addAction(exitAction);
-        
-        // Help menu
+
         QMenu *helpMenu = menuBar->addMenu("Help");
         QMenu *viewMenu = menuBar->addMenu("View");
         
@@ -480,7 +451,6 @@ private:
     }
 
     void connectSignals() {
-        // Additional signal connections can be added here
     }
 
 private slots:
@@ -568,7 +538,6 @@ private slots:
     void saveParseTreeJson() {
         QString path = QFileDialog::getSaveFileName(this, "Save Parse Tree JSON", "parse_tree.json", "JSON files (*.json)");
         if (path.isEmpty()) return;
-        // Reparse current input to get structured tree.
         QString programText = programInput->toPlainText();
         if (programText.isEmpty()) {
             QMessageBox::warning(this, "No Input", "Please enter program text first.");
@@ -732,7 +701,6 @@ private slots:
         loadExampleProgram();
         runAnalysisPipeline(4);
         if (automataCount == 0) {
-            // Quick built-in DFA demo
             addAutomatonFromGUI("ab", "A,B,C", "A", "A,a,B;B,b,C;C,a,C", "C");
             updateAutomatonTable();
         }
@@ -783,7 +751,6 @@ private slots:
 
     void addAutomatonGUI() {
         try {
-            // Get input values
             QString alphabetStr = alphabetInput->currentText();
             QString statesStr = statesInput->currentText();
             QString initialStateStr = initialStateInput->currentText();
@@ -795,7 +762,6 @@ private slots:
                 return;
             }
             
-            // Add the automaton using GUI-specific function
             addAutomatonFromGUI(alphabetStr, statesStr, initialStateStr, transitionsStr, finalStatesStr);
             
             updateAutomatonTable();
@@ -822,14 +788,11 @@ private slots:
                 QMessageBox::warning(this, "Not Found", QString("Automaton with ID %1 not found").arg(id));
                 return;
             }
-            
-            // Remove the automaton
-            delete[] automata[idx].states;
+        	delete[] automata[idx].states;
             delete[] automata[idx].alphabet;
             delete[] automata[idx].delta;
             delete[] automata[idx].stateterminal;
             
-            // Shift remaining automata
             for (int i = idx; i < automataCount - 1; i++) {
                 automata[i] = automata[i + 1];
             }
@@ -989,7 +952,6 @@ private slots:
         QString dir = QFileDialog::getExistingDirectory(this, "Export All Artifacts");
         if (dir.isEmpty()) return;
 
-        // 1) Main report
         {
             QFile f(dir + "/analysis_report.txt");
             if (f.open(QIODevice::WriteOnly | QIODevice::Text)) {
@@ -1005,7 +967,6 @@ private slots:
             }
         }
 
-        // 2) CSV tokens
         {
             QFile f(dir + "/analysis_tokens.csv");
             if (f.open(QIODevice::WriteOnly | QIODevice::Text)) {
@@ -1018,7 +979,6 @@ private slots:
             }
         }
 
-        // 3) Parse tree text
         {
             QFile f(dir + "/parse_tree.txt");
             if (f.open(QIODevice::WriteOnly | QIODevice::Text)) {
@@ -1028,7 +988,6 @@ private slots:
             }
         }
 
-        // 4) Generated code
         {
             QFile f(dir + "/generated_code.py");
             if (f.open(QIODevice::WriteOnly | QIODevice::Text)) {
@@ -1038,7 +997,6 @@ private slots:
             }
         }
 
-        // 5) Parse tree JSON + DOT by reparsing input
         {
             QString programText = programInput->toPlainText();
             if (!programText.isEmpty()) {
@@ -1069,7 +1027,6 @@ private slots:
             }
         }
 
-        // 6) Graph PNG from current scene
         if (automatonGraphScene) {
             QRectF r = automatonGraphScene->sceneRect();
             if (r.isEmpty()) r = QRectF(0, 0, 800, 600);
@@ -1316,7 +1273,6 @@ private slots:
         const double nodeR = 24.0;
         QVector<QPointF> pos(A.stateCount);
 
-        // For small automata, use layered layout for cleaner visuals.
         if (A.stateCount == 1) {
             pos[0] = QPointF(cx, cy);
         } else if (A.stateCount == 2) {
@@ -1355,7 +1311,6 @@ private slots:
             path.quadTo(ctrl, end);
             automatonGraphScene->addPath(path, QPen(QColor(70, 140, 255), 2.2));
 
-            // Arrow head: tangent near end approximated by (end - ctrl)
             QPointF tvec = end - ctrl;
             double tlen = std::sqrt(tvec.x() * tvec.x() + tvec.y() * tvec.y());
             if (tlen > 0.0) tvec /= tlen;
@@ -1373,7 +1328,6 @@ private slots:
             txt->setFont(f);
         };
 
-        // Group transition labels by (origin,target) to reduce clutter.
         std::map<std::pair<int, int>, QStringList> grouped;
         for (int t = 0; t < A.transitionCount; t++) {
             int o = stateIdx(A.delta[t].origin);
@@ -1382,14 +1336,12 @@ private slots:
             grouped[{o, d}].append(QString(A.delta[t].label));
         }
 
-        // Draw transitions first
         for (const auto &kv : grouped) {
             int o = kv.first.first;
             int d = kv.first.second;
             QString label = kv.second.join(",");
             if (o == d) {
                 QPointF p = pos[o];
-                // Place loop circle neatly on top-center of node.
                 const double loopR = nodeR * 0.9;
                 QRectF loopRect(p.x() - loopR, p.y() - nodeR - 2.0 * loopR - 8.0, 2 * loopR, 2 * loopR);
                 automatonGraphScene->addEllipse(loopRect, QPen(QColor(70, 140, 255), 2.2));
@@ -1407,7 +1359,6 @@ private slots:
             }
         }
 
-        // Draw nodes
         for (int i = 0; i < A.stateCount; i++) {
             const bool isFinal = findInArray(A.states[i], A.stateterminal, A.terminalCount);
             QRectF outer(pos[i].x() - nodeR, pos[i].y() - nodeR, 2 * nodeR, 2 * nodeR);
@@ -1424,7 +1375,6 @@ private slots:
             txt->setPos(pos[i].x() - 7, pos[i].y() - 12);
         }
 
-        // Initial arrow
         int initIdx = stateIdx(A.qo);
         if (initIdx >= 0) {
             QPointF p = pos[initIdx];
@@ -1482,11 +1432,9 @@ private slots:
             return;
         }
         
-        // Convert QString to char* for existing functions
         QByteArray ba = programText.toLocal8Bit();
         char *inputLine = ba.data();
         
-        // Clear previous outputs
         tokenOutput->clear();
         parseTreeOutput->clear();
         parseTreeWidget->clear();
@@ -1498,10 +1446,8 @@ private slots:
         try {
             QString stageName = (stage == 1 ? "Lex" : stage == 2 ? "Parse" : stage == 3 ? "Semantic" : "Codegen");
             historyList->addItem(QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss") + " - Start " + stageName);
-            // Lexical analysis
             lexicalAnalysis(inputLine);
             
-            // Display tokens
             QString tokenText = "Tokens:\n";
             for (Token *t = tokenListHead; t; t = t->next) {
                 tokenText += QString("Token: %1  Lexeme: %2  @(%3,%4)\n")
@@ -1518,7 +1464,6 @@ private slots:
                 return;
             }
             
-            // Parsing
             currentToken = tokenListHead;
             TreeNode *parseTree = parseProgram();
             traceOutput->setPlainText(QString::fromStdString(getParserTrace()));
@@ -1585,7 +1530,7 @@ private slots:
                 historyList->addItem(QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss") + " - Parse failed");
             }
             
-            // Cleanup
+
             cleanupTokensAndSymbols();
             
             statusBar->showMessage("Program analysis completed");
@@ -1638,7 +1583,7 @@ private slots:
     void cleanupTokensAndSymbols() {
         resetSemanticState();
         
-        // Cleanup tokens
+
         int guard = 0;
         while (tokenListHead && guard < 100000) {
             Token *tmp = tokenListHead;
@@ -1657,7 +1602,7 @@ private slots:
         automat A;
         A.id = nextAutomatonID++;
 
-        // Parse alphabet
+
         QStringList alphabetList = alphabetStr.split("", Qt::SkipEmptyParts);
         A.alphabetCount = alphabetList.size();
         A.alphabet = new char[A.alphabetCount];
@@ -1665,7 +1610,7 @@ private slots:
             A.alphabet[i] = alphabetList[i].at(0).toLatin1();
         }
 
-        // Parse states
+
         QStringList statesList = statesStr.split(",", Qt::SkipEmptyParts);
         A.stateCount = statesList.size();
         A.states = new char[A.stateCount];
@@ -1676,10 +1621,10 @@ private slots:
             }
         }
 
-        // Set initial state
+
         A.qo = initialStateStr.trimmed().at(0).toLatin1();
 
-        // Parse transitions
+
         QStringList transitionList = transitionsStr.split(";", Qt::SkipEmptyParts);
         A.transitionCount = transitionList.size();
         A.delta = new transition[A.transitionCount];
@@ -1697,7 +1642,7 @@ private slots:
             }
         }
 
-        // Parse final states
+
         QStringList finalStatesList = finalStatesStr.split(",", Qt::SkipEmptyParts);
         A.terminalCount = finalStatesList.size();
         A.stateterminal = new char[A.terminalCount];
@@ -1770,7 +1715,7 @@ private slots:
         }
         
         if (strcmp(root->symbol, "Statement") == 0) {
-            // Handle declarations (int, string)
+
             if (root->childCount > 0 &&
                 (strcmp(root->children[0]->symbol, "int") == 0 ||
                  strcmp(root->children[0]->symbol, "string") == 0)) {
@@ -1778,26 +1723,26 @@ private slots:
                 const char* varName = root->children[1]->symbol;
                 result += indentStr + "# Declared: " + type + " " + varName + "\n";
                 
-                // Check for initialization
+
                 if (root->childCount > 3 && strcmp(root->children[2]->symbol, "=") == 0) {
                     result += indentStr + varName + " = " + generateCodeGUI(root->children[3], 0) + "\n";
                 }
                 return result;
             }
             
-            // Handle if statements
+
             if (root->childCount > 0 && strcmp(root->children[0]->symbol, "if") == 0) {
                 result += indentStr + "if ";
-                // Get condition from children[2] (after "if" and "(")
+
                 if (root->childCount > 2) {
                     result += generateCodeGUI(root->children[2], 0);
                 }
                 result += ":\n";
-                // Get then statement from children[3]
+
                 if (root->childCount > 3) {
                     result += generateCodeGUI(root->children[3], indent + 1);
                 }
-                // Check for else
+
                 for (int i = 4; i < root->childCount; i++) {
                     if (strcmp(root->children[i]->symbol, "else") == 0) {
                         result += indentStr + "else:\n";
@@ -1810,22 +1755,22 @@ private slots:
                 return result;
             }
             
-            // Handle while statements
+
             if (root->childCount > 0 && strcmp(root->children[0]->symbol, "while") == 0) {
                 result += indentStr + "while ";
-                // Get condition from children[2] (after "while" and "(")
+
                 if (root->childCount > 2) {
                     result += generateCodeGUI(root->children[2], 0);
                 }
                 result += ":\n";
-                // Get body from children[3]
+
                 if (root->childCount > 3) {
                     result += generateCodeGUI(root->children[3], indent + 1);
                 }
                 return result;
             }
             
-            // Handle return statements
+
             if (root->childCount > 0 && strcmp(root->children[0]->symbol, "return") == 0) {
                 result += indentStr + "return";
                 if (root->childCount > 1) {
@@ -1835,7 +1780,7 @@ private slots:
                 return result;
             }
             
-            // Handle assignments (identifier = expression;)
+
             if (root->childCount > 0 && 
                 root->children[0]->childCount == 0 && 
                 isIdentifierStart(root->children[0]->symbol[0])) {
@@ -1849,7 +1794,7 @@ private slots:
                 }
             }
             
-            // Handle blocks { ... }
+
             if (root->childCount > 0 && strcmp(root->children[0]->symbol, "{") == 0) {
                 for (int i = 1; i < root->childCount - 1; i++) {
                     result += generateCodeGUI(root->children[i], indent);
@@ -1857,12 +1802,12 @@ private slots:
                 return result;
             }
             
-            return result;  // Empty statement or unknown
+            return result;
         }
         
-        // For leaf nodes (identifiers, numbers, operators)
+
         if (root->childCount == 0) {
-            // Skip punctuation tokens in output
+
             if (strcmp(root->symbol, ";") == 0 || 
                 strcmp(root->symbol, "{") == 0 || 
                 strcmp(root->symbol, "}") == 0 ||
@@ -1873,7 +1818,7 @@ private slots:
             return QString(root->symbol);
         }
         
-        // For expression nodes (with children), combine them
+
         for (int i = 0; i < root->childCount; i++) {
             QString childCode = generateCodeGUI(root->children[i], 0);
             if (!childCode.isEmpty()) {
@@ -1914,13 +1859,13 @@ private slots:
             }
         }
 
-        errorMessage.clear(); // No error
+        errorMessage.clear();
         return findInArray(current, A.stateterminal, A.terminalCount);
     }
 
 protected:
     void closeEvent(QCloseEvent *event) override {
-        // Cleanup automata memory
+
         for (int i = 0; i < automataCount; i++) {
             delete[] automata[i].states;
             delete[] automata[i].alphabet;
